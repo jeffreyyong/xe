@@ -4,43 +4,61 @@ import (
 	"fmt"
 
 	"github.com/go-resty/resty/v2"
-	"github.com/jeffreyyong/xe/model"
 )
 
-// ForexClient is a client interface for
-// calling the https://exchangeratesapi.io/ api.
-type ForexClient interface {
-	GetLatestRates(rates []string) (*model.LatestRates, error)
-	GetHistoricalRates(rates []string, startDate string, endDate string) (*model.HistoricalRates, error)
+// LatestRates holds the response for the latest rates
+type LatestRates struct {
+	Rates Rates  `json:"rates"`
+	Base  string `json:"base"`
+	Date  string `json:"date"`
 }
 
-type forexClient struct {
+// HistoricalRates holds the response for the historical rates
+type HistoricalRates struct {
+	RatesList RatesList `json:"rates"`
+	Base      string    `json:"base"`
+	StartDate string    `json:"start_at"`
+	EndDate   string    `json:"end_at"`
+}
+
+type Rates map[string]float64
+
+type RatesList map[string]Rates
+
+// Forex is a client interface for
+// calling the https://exchangeratesapi.io/ api.
+type Forex interface {
+	GetLatestRates(rates []string) (*LatestRates, error)
+	GetHistoricalRates(rates []string, startDate string, endDate string) (*HistoricalRates, error)
+}
+
+type forex struct {
 	*resty.Client
 }
 
-func NewForexClient() ForexClient {
+func NewForexClient() Forex {
 	restyClient := newDefaultRestyClient()
 
-	return &forexClient{
+	return &forex{
 		Client: restyClient,
 	}
 }
 
 // GetLatestRates get rates with EUR as base
-func (e *forexClient) GetLatestRates(rates []string) (*model.LatestRates, error) {
+func (e *forex) GetLatestRates(rates []string) (*LatestRates, error) {
 	url, err := buildLatestRatesURL(rates)
 	if err != nil {
 		return nil, err
 	}
 
-	exchangeRates := &model.LatestRates{}
+	exchangeRates := &LatestRates{}
 	req := e.Client.R().SetResult(exchangeRates)
 	resp, err := doGet(url, req)
 	if err != nil {
 		return nil, err
 	}
 
-	results, ok := resp.Result().(*model.LatestRates)
+	results, ok := resp.Result().(*LatestRates)
 	if !ok {
 		return nil, NewHTTPClientError(url, "type assertion failed",
 			fmt.Errorf("%s: %v", resp.Status(), resp))
@@ -50,20 +68,20 @@ func (e *forexClient) GetLatestRates(rates []string) (*model.LatestRates, error)
 }
 
 // GetHistoricalRates get historical rates with EUR as base
-func (e *forexClient) GetHistoricalRates(rates []string, startDate string, endDate string) (*model.HistoricalRates, error) {
+func (e *forex) GetHistoricalRates(rates []string, startDate string, endDate string) (*HistoricalRates, error) {
 	url, err := buildHistoricalRatesURL(rates, startDate, endDate)
 	if err != nil {
 		return nil, err
 	}
 
-	exchangeRates := &model.HistoricalRates{}
+	exchangeRates := &HistoricalRates{}
 	req := e.Client.R().SetResult(exchangeRates)
 	resp, err := doGet(url, req)
 	if err != nil {
 		return nil, err
 	}
 
-	results, ok := resp.Result().(*model.HistoricalRates)
+	results, ok := resp.Result().(*HistoricalRates)
 	if !ok {
 		return nil, NewHTTPClientError(url, "type assertion failed",
 			fmt.Errorf("%s: %v", resp.Status(), resp))

@@ -3,17 +3,17 @@ package calculator
 import (
 	"testing"
 
-	"github.com/jeffreyyong/xe/model"
+	"github.com/jeffreyyong/xe/client"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestInverse(t *testing.T) {
-	c := NewCalculator()
-	rates := model.Rates{
+	c := NewEngine()
+	rates := client.Rates{
 		USD: 1.1058,
 		GBP: 0.8598,
 	}
-	expectedInverseRates := model.Rates{
+	expectedInverseRates := client.Rates{
 		USD: 0.904322662325918,
 		GBP: 1.1630611770179111,
 	}
@@ -24,7 +24,7 @@ func TestInverse(t *testing.T) {
 }
 
 func TestSortRatesList(t *testing.T) {
-	ratesList := model.RatesList{
+	ratesList := client.RatesList{
 		"2019-11-21": {
 			USD: 1.1091,
 			GBP: 0.85548,
@@ -51,7 +51,7 @@ func TestSortRatesList(t *testing.T) {
 		},
 	}
 
-	expectedRatesSequence := []model.Rates{
+	expectedRatesSequence := []client.Rates{
 		{
 			USD: 1.1034,
 			GBP: 0.8566,
@@ -84,7 +84,7 @@ func TestSortRatesList(t *testing.T) {
 }
 
 func TestLinearRegression(t *testing.T) {
-	ratesSequence := []model.Rates{
+	ratesSequence := []client.Rates{
 		{
 			USD: 1.1034,
 			GBP: 0.8566,
