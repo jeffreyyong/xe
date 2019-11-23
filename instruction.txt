@@ -1,0 +1,14 @@
+The purpose of this technical challenge is for you to demonstrate your ability to structure an
+api in a way that is testable, deployable and extensible. We hope that the challenge should
+take you less than 2 hours. We do not recommend spending more time on it than that.
+The Challenge
+Please write a gola ng/PHP application that is “ready to be deployed”. The application should:
+● Have an endpoint that calls https://exchangeratesapi.io/ to get the latest exchange
+rates for the base currencies of GBP and USD.
+● It should return the value of 1 GBP or 1 USD in euros.
+● It should check that value against the historic rate for the last week and make a naive
+recommendation as to whether this is a good time to exchange money or not.
+What we are looking for:
+● Well organised code.
+● Easy to run/deploy.
+● Clear instructions on how to get the application running.
