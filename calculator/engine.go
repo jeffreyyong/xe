@@ -8,31 +8,38 @@ import (
 )
 
 const (
-	GBP = "GBP"
-	USD = "USD"
+	EUR = "EUR"
+
+	ConvertSignal   Signal = "convert"
+	NoConvertSignal Signal = "don't convert"
+	NeutralSignal   Signal = "Neutral"
 )
 
+type Signal string
+
 type Engine interface {
-	Inverse(rates client.Rates) client.Rates
+	Recommend(ratesList client.RatesList) Signal
 }
 
 type engine struct {
 }
 
-type Recommendations map[string]bool
-
-type Slopes map[string]float64
-
 func NewEngine() Engine {
 	return &engine{}
 }
 
-func (c *engine) Inverse(rates client.Rates) client.Rates {
-	inverseRates := make(client.Rates, len(rates))
-	for k, v := range rates {
-		inverseRates[k] = 1 / v
+func (e *engine) Recommend(ratesList client.RatesList) Signal {
+	sortedRates := sortRatesList(ratesList)
+	slope := getSlope(sortedRates, EUR)
+
+	signal := NeutralSignal
+	if slope > 0 {
+		signal = NoConvertSignal
+	} else if slope < 0 {
+		signal = ConvertSignal
 	}
-	return inverseRates
+
+	return signal
 }
 
 func sortRatesList(ratesList client.RatesList) []client.Rates {
@@ -50,24 +57,18 @@ func sortRatesList(ratesList client.RatesList) []client.Rates {
 	return ratesSequence
 }
 
-// linearRegression is
-func linearRegression(ratesSequence []client.Rates) Slopes {
+// getSlope gets the trend of a line
+func getSlope(ratesSequence []client.Rates, currency string) float64 {
 	length := len(ratesSequence)
 	timeline := make([]float64, length)
-	gbpRates := make([]float64, length)
-	usdRates := make([]float64, length)
+	rates := make([]float64, length)
 
-	for i, rates := range ratesSequence {
+	for i, r := range ratesSequence {
 		timeline[i] = float64(i)
-		gbpRates[i] = rates[GBP]
-		usdRates[i] = rates[USD]
+		rates[i] = r[currency]
+
 	}
 
-	_, gbpBeta := stat.LinearRegression(timeline, gbpRates, nil, false)
-	_, usdBeta := stat.LinearRegression(timeline, usdRates, nil, false)
-
-	return Slopes{
-		GBP: gbpBeta,
-		USD: usdBeta,
-	}
+	_, beta := stat.LinearRegression(timeline, rates, nil, false)
+	return beta
 }
