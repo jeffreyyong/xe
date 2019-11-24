@@ -8,15 +8,23 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/golang/mock/gomock"
 	"github.com/jeffreyyong/xe/client/mock"
+	clientmock "github.com/jeffreyyong/xe/client/mock"
 	"github.com/jeffreyyong/xe/model"
 	"github.com/stretchr/testify/assert"
 )
 
+// TestGetLatestRateHappyCase tests that the latest rate
+// is returned when given a currency
+// Scenario:
+// 	- the httpClient is mocked to return a LatestRate object
+// 	- and no error is returned
+//
+// Expect:
+// 	- asserts that no error is return by GetLatestRate
+// 	- asserts that the right LatestRate result is returned
 func TestGetLatestRateHappyCase(t *testing.T) {
-	ctrl := gomock.NewController(t)
+	httpClient, forex, ctrl := setupTestForex(t)
 	defer ctrl.Finish()
-	httpClient := mock.NewMockHTTPClient(ctrl)
-	forex := NewForex(httpClient)
 
 	mockLatestRate := &model.LatestRate{
 		Rates: model.Rates{
@@ -38,11 +46,17 @@ func TestGetLatestRateHappyCase(t *testing.T) {
 	assert.Equal(t, mockLatestRate, latestRate, "result does not match")
 }
 
+// TestGetLatestRateHTTPClientError tests that an error is returned
+// by the method when httpClient has error
+// Scenario:
+// 	- error returned by the httpClient
+//
+// Expect:
+// 	- right HTTPClientError is returned by the method GetLatestRate
+//  - result is nil
 func TestGetLatestRateHTTPClientError(t *testing.T) {
-	ctrl := gomock.NewController(t)
+	httpClient, forex, ctrl := setupTestForex(t)
 	defer ctrl.Finish()
-	httpClient := mock.NewMockHTTPClient(ctrl)
-	forex := NewForex(httpClient)
 
 	errString := "connection closed"
 	mockHTTPClientErr := errors.New(errString)
@@ -56,11 +70,17 @@ func TestGetLatestRateHTTPClientError(t *testing.T) {
 	assert.Nil(t, latestRate)
 }
 
+// TestGetLatestRateTypeAssertion tests that type assertion error
+// is raised by the method when the result can't be asserted to type LatestRate
+// Scenario:
+// 	- httpClient returns a result interface that is string "foobar" which is not the
+// 	  the type of LatestRate
+//
+// Expect:
+// 	- type assertion error is returned in the format of HTTPClientError
 func TestGetLatestRateTypeAssertion(t *testing.T) {
-	ctrl := gomock.NewController(t)
+	httpClient, forex, ctrl := setupTestForex(t)
 	defer ctrl.Finish()
-	httpClient := mock.NewMockHTTPClient(ctrl)
-	forex := NewForex(httpClient)
 
 	mockHTTPClientResp := &resty.Response{
 		Request: &resty.Request{
@@ -81,11 +101,18 @@ func TestGetLatestRateTypeAssertion(t *testing.T) {
 	assert.Nil(t, latestRate)
 }
 
+// TestGetHistoricalRatesHappyCase tests that historal rates
+// are returned when given the currency, startDate and endDate
+// Scenario:
+//	- the httpClient is mocked to return a HistoricalRates object
+// 	- and no error is returned
+//
+// Expect:
+// 	- asserts that no error is returned by GetHistoricalRates
+// 	- asserts that the right HistoricalRates result is returned
 func TestGetHistoricalRatesHappyCase(t *testing.T) {
-	ctrl := gomock.NewController(t)
+	httpClient, forex, ctrl := setupTestForex(t)
 	defer ctrl.Finish()
-	httpClient := mock.NewMockHTTPClient(ctrl)
-	forex := NewForex(httpClient)
 
 	mockHistoricalRates := &model.HistoricalRates{
 		RatesList: model.RatesList{
@@ -115,11 +142,17 @@ func TestGetHistoricalRatesHappyCase(t *testing.T) {
 	assert.Equal(t, mockHistoricalRates, rates, "result does not match")
 }
 
+// TestGetHistoricalRatesHTTPClientError tests that an error is returned
+// by the method when httpClient has error
+// Scenario:
+// 	- error returned by the httpClient
+//
+// Expect:
+// 	- right HTTPClientError is returned by the method GetHistoricalRates
+//  - result is nil
 func TestGetHistoricalRatesHTTPClientError(t *testing.T) {
-	ctrl := gomock.NewController(t)
+	httpClient, forex, ctrl := setupTestForex(t)
 	defer ctrl.Finish()
-	httpClient := mock.NewMockHTTPClient(ctrl)
-	forex := NewForex(httpClient)
 
 	errString := "connection closed"
 	mockHTTPClientErr := errors.New(errString)
@@ -133,11 +166,17 @@ func TestGetHistoricalRatesHTTPClientError(t *testing.T) {
 	assert.Nil(t, latestRate)
 }
 
+// TestGetHistoricalRatesTypeAssertion tests that type assertion error
+// is raised by the method when the result object fails to be asserted to type HistoricalRates
+// Scenario:
+// 	- httpClient returns a result interface that is string "foobar" which is not the
+// 	  the type of HistoricalRates
+//
+// Expect:
+// 	- type assertion error is returned in the format of HTTPClientError
 func TestGetHistoricalRatesTypeAssertion(t *testing.T) {
-	ctrl := gomock.NewController(t)
+	httpClient, forex, ctrl := setupTestForex(t)
 	defer ctrl.Finish()
-	httpClient := mock.NewMockHTTPClient(ctrl)
-	forex := NewForex(httpClient)
 
 	mockHTTPClientResp := &resty.Response{
 		Request: &resty.Request{
@@ -156,4 +195,11 @@ func TestGetHistoricalRatesTypeAssertion(t *testing.T) {
 	assert.Error(t, err)
 	assert.Equal(t, err.Error(), expectedErrString)
 	assert.Nil(t, latestRate)
+}
+
+func setupTestForex(t *testing.T) (*clientmock.MockHTTPClient, Forex, *gomock.Controller) {
+	ctrl := gomock.NewController(t)
+	httpClient := mock.NewMockHTTPClient(ctrl)
+	forex := NewForex(httpClient)
+	return httpClient, forex, ctrl
 }

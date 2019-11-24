@@ -17,6 +17,8 @@ type forex struct {
 	httpClient HTTPClient
 }
 
+// NewForex initialises a Forex client
+// with a httpClient
 func NewForex(c HTTPClient) Forex {
 	return &forex{
 		httpClient: c,
@@ -46,6 +48,7 @@ func (e *forex) GetLatestRate(currency string) (*model.LatestRate, error) {
 }
 
 // GetHistoricalRates get historical rates from `currency` to EUR
+// with the period from the startDate to the endDate
 func (e *forex) GetHistoricalRates(currency string, startDate string, endDate string) (*model.HistoricalRates, error) {
 	url, err := buildHistoricalRatesURL(currency, startDate, endDate)
 	if err != nil {

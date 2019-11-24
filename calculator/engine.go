@@ -12,11 +12,14 @@ const (
 
 	SignalConvert   Signal = "convert"
 	SignalNoConvert Signal = "don't convert"
-	SignalNeutral   Signal = "Neutral"
+	SignalNeutral   Signal = "neutral"
 )
 
+// Signal is the custom string for signal
 type Signal string
 
+// Engine is the calculator interface that
+// recommends whether should exchange forex
 type Engine interface {
 	Recommend(ratesList model.RatesList) Signal
 }
@@ -24,12 +27,22 @@ type Engine interface {
 type engine struct {
 }
 
+// NewEngine initialises the calculator engine
 func NewEngine() Engine {
 	return &engine{}
 }
 
+// Recommend:
+// 1) takes a list of rates
+// 2) orders them in ascending order by date (exchangeratesapi
+//    returns the rates in random order)
+// 3) finds the trend line of those rates by calculating
+//    the beta
+// 4) returns 'convert' if the price is cheaper, returns 'don't
+//    convert' if the price is more expensive, and 'neutral'
+//    if the price is constant.
 func (e *engine) Recommend(ratesList model.RatesList) Signal {
-	sortedRates := sortRatesList(ratesList)
+	sortedRates := sortByDate(ratesList)
 	slope := getSlope(sortedRates, EUR)
 
 	signal := SignalNeutral
@@ -42,7 +55,8 @@ func (e *engine) Recommend(ratesList model.RatesList) Signal {
 	return signal
 }
 
-func sortRatesList(ratesList model.RatesList) []model.Rates {
+// sortByDate sorts the rates by the key of RatesList, i.e. date string
+func sortByDate(ratesList model.RatesList) []model.Rates {
 	var dates []string
 	ratesSequence := make([]model.Rates, len(ratesList))
 
@@ -57,7 +71,7 @@ func sortRatesList(ratesList model.RatesList) []model.Rates {
 	return ratesSequence
 }
 
-// getSlope gets the trend of a line
+// getSlope computes the beta (trend line) given a list of ordered rates.
 func getSlope(ratesSequence []model.Rates, currency string) float64 {
 	length := len(ratesSequence)
 	timeline := make([]float64, length)
@@ -66,7 +80,6 @@ func getSlope(ratesSequence []model.Rates, currency string) float64 {
 	for i, r := range ratesSequence {
 		timeline[i] = float64(i)
 		rates[i] = r[currency]
-
 	}
 
 	_, beta := stat.LinearRegression(timeline, rates, nil, false)

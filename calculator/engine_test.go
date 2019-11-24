@@ -7,7 +7,14 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSortRatesList(t *testing.T) {
+// TestSortByDate checks the RatesList is sorted by
+// date in ascending order
+// Scenario:
+// 	- given a rates list with dates in random order
+//
+// Expect:
+// 	- rates are sorted in order in a slice
+func TestSortByDate(t *testing.T) {
 	ratesList := model.RatesList{
 		"2019-11-21": {
 			EUR: 1.1689343994,
@@ -50,12 +57,18 @@ func TestSortRatesList(t *testing.T) {
 		},
 	}
 
-	ratesSequence := sortRatesList(ratesList)
+	ratesSequence := sortByDate(ratesList)
 	assert.Equal(t, expectedRatesSequence,
 		ratesSequence, "rates sequence don't match")
 }
 
-func TestLinearRegression(t *testing.T) {
+// TestGetSlope checks that beta is calculated correctly.
+// Scenario:
+// 	- given a list of rates that has been ordered
+//
+// Expect:
+// 	- a beta coefficient is calculated correctly
+func TestGetSlope(t *testing.T) {
 	ratesSequence := []model.Rates{
 		{
 			EUR: 1.1674060238,
@@ -84,6 +97,13 @@ func TestLinearRegression(t *testing.T) {
 		slope, "slope is wrong")
 }
 
+// TestRecommend checks that the right signal
+// recommendation is given based on the slope
+// Scenario:
+// 	- explained in the descriptions of tests
+//
+// Expect:
+// 	- right recommendation is given
 func TestRecommend(t *testing.T) {
 	type testParams struct {
 		description       string
@@ -138,7 +158,7 @@ func TestRecommend(t *testing.T) {
 			expRecommendation: SignalNoConvert,
 		},
 		{
-			description: "SignalNeutral if price is going anywhere",
+			description: "SignalNeutral if price is constant",
 			ratesList: model.RatesList{
 				"2019-11-22": {
 					"EUR": 0.1155735337,

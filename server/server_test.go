@@ -18,6 +18,13 @@ const (
 	testServerAddr = "localhost:3000"
 )
 
+// TestQueryParamsMissing validates against missing query params
+// Scenario:
+// 	- query params of 'currency' not provided
+//
+// Expect:
+// 	- right error message is returned in the JSON body
+// 	- StatusCode of 400 is returned
 func TestQueryParamsMissing(t *testing.T) {
 	_, _, xeService, ctrl := setupTestServer(t)
 	defer ctrl.Finish()
@@ -36,6 +43,14 @@ func TestQueryParamsMissing(t *testing.T) {
 	assert.Equal(t, expJSON, string(resp.Body()))
 }
 
+// TestGetLatestRateError checks if error is returned
+// when fx.GetLatestRate returns error
+// Scenario:
+// 	- mockFX is configured to return an error for GetLatestRate
+//
+// Expect:
+// 	- right error message is returned in the JSON body
+// 	- StatusCode of 500 is returned
 func TestGetLatestRateError(t *testing.T) {
 	_, mockFX, xeService, ctrl := setupTestServer(t)
 	defer ctrl.Finish()
@@ -57,6 +72,14 @@ func TestGetLatestRateError(t *testing.T) {
 	assert.Equal(t, expJSON, string(resp.Body()))
 }
 
+// TestExtractTargetRateError checks if error is returned
+// when target rate can't be retrieved from LatestRate
+// Scenario:
+// 	- model.Rates contains an unknown key, i.e. not EUR
+//
+// Expect:
+// 	- right error message is returned in the JSON body
+// 	- StatusCode of 500 is returned
 func TestExtractTargetRateError(t *testing.T) {
 	_, mockFX, xeService, ctrl := setupTestServer(t)
 	defer ctrl.Finish()
@@ -88,6 +111,14 @@ func TestExtractTargetRateError(t *testing.T) {
 	assert.Equal(t, expJSON, string(resp.Body()))
 }
 
+// TestGetHistoricalRatesError checks if eror is returned
+// when fx.GetHistoricalRates returns error
+// Scenario:
+// 	- mockFX is configured to return error for GetHistoricalRates
+//
+// Expect:
+// 	- right error message is returned in the JSON body
+// 	- StatusCode of 500 is returned
 func TestGetHistoricalRatesError(t *testing.T) {
 	_, mockFX, xeService, ctrl := setupTestServer(t)
 	defer ctrl.Finish()
@@ -107,7 +138,7 @@ func TestGetHistoricalRatesError(t *testing.T) {
 		Return(mockLatestRate, nil)
 
 	mockFX.EXPECT().GetHistoricalRates(gomock.Any(), gomock.Any(), gomock.Any()).
-		Return(nil, errors.New("error getting latest rate"))
+		Return(nil, errors.New("error getting historical rate"))
 
 	convertResp := &model.ConvertResp{}
 	url := "http://localhost:3000/convert?currency=USD"
@@ -120,6 +151,15 @@ func TestGetHistoricalRatesError(t *testing.T) {
 	assert.Equal(t, expJSON, string(resp.Body()))
 }
 
+// TestHandlerConvertNoError shows the happy path
+// Scenario:
+// 	- mockFX returns correct mockLatestRate
+// 	- mockFX returns correct mockHistoricalRates
+//  - mockCE gives recommendation
+//
+// Expect:
+// 	- right JSON is provided: {"from":"USD","to":"EUR","rate":1.163061177,"recommendation":"convert"}
+// 	- StatusCode of 200 is returned
 func TestHandlerConvertNoError(t *testing.T) {
 	mockCE, mockFX, xeService, ctrl := setupTestServer(t)
 	defer ctrl.Finish()

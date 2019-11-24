@@ -70,26 +70,52 @@ func TestRestyClientRetryConditionNoRetries(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+// TestBuildLatestRateURL tests URL with the latest endpoint is built
+//
+// Scenario:
+// 	- given a currency
+//
+// Expect:
+// 	- baseURL is built with the 'latest' endpoint, with currency as the
+//    'base' and EUR as the 'symbols'
+//  - no error is return
 func TestBuildLatestRateURL(t *testing.T) {
-	rate := "GBP"
+	currency := "GBP"
 	expected := "https://api.exchangeratesapi.io/latest?base=GBP&symbols=EUR"
 
-	latestRateURL, err := buildLatestRateURL(rate)
+	latestRateURL, err := buildLatestRateURL(currency)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, latestRateURL, "latest rate URL is wrong")
 }
 
+// TestBuildHistoricalRatesURL tests URL with the history endpoint is built
+//
+// Scenario:
+// 	- given a currency, startDate and endDate
+//
+// Expect:
+// 	- baseURL is built with the 'history' endpoint, with currency as the
+//    'base', EUR as the 'symbols', startDate as 'start_at' and
+//    endDate as 'end_at'
+//  - no error is returned
 func TestBuildHistoricalRatesURL(t *testing.T) {
-	rate := "GBP"
+	currency := "GBP"
 	startDate := "2019-11-15"
 	endDate := "2019-11-22"
 	expected := "https://api.exchangeratesapi.io/history?base=GBP&end_at=2019-11-22&start_at=2019-11-15&symbols=EUR"
 
-	latestRateURL, err := buildHistoricalRatesURL(rate, startDate, endDate)
+	latestRateURL, err := buildHistoricalRatesURL(currency, startDate, endDate)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, latestRateURL, "historical rates URL is wrong")
 }
 
+// TestErrIfHTTPReqFailed checks that error is returned
+// if server returns non 2xx error or there's error making a HTTP request
+// Scenario:
+// 	- explained in the description
+//
+// Expect:
+// 	- right error message is asserted if there's any
 func TestErrIfHTTPReqFailed(t *testing.T) {
 	type testParams struct {
 		description   string
@@ -143,4 +169,17 @@ func TestErrIfHTTPReqFailed(t *testing.T) {
 			}
 		})
 	}
+}
+
+// TestGET tests that the GET method is functional
+func TestGET(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(200)
+	})
+	ts := httptest.NewServer(http.Handler(handler))
+	defer ts.Close()
+
+	c := NewHTTPClient()
+	_, err := c.GET(ts.URL, "result")
+	assert.NoError(t, err)
 }

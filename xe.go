@@ -6,8 +6,11 @@ import (
 	"github.com/jeffreyyong/xe/server"
 )
 
+const (
+	addr = "localhost:3030"
+)
+
 func main() {
-	addr := "localhost:3000"
 	c := client.NewHTTPClient()
 	fx := client.NewForex(c)
 	ce := calculator.NewEngine()

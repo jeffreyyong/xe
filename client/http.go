@@ -10,13 +10,13 @@ import (
 
 const (
 	BaseEndpoint   = "https://api.exchangeratesapi.io"
-	LatestPath     = "latest"
-	HistoricalPath = "history"
-	SymbolsParam   = "symbols"
-	BaseParam      = "base"
-	StartDateParam = "start_at"
-	EndDateParam   = "end_at"
-	EURSymbol      = "EUR"
+	PathLatest     = "latest"
+	PathHistory    = "history"
+	ParamSymbols   = "symbols"
+	ParamBase      = "base"
+	ParamStartDate = "start_at"
+	ParamEndDate   = "end_at"
+	SymbolEuro     = "EUR"
 )
 
 var (
@@ -53,6 +53,7 @@ var retryCondFunc = func(r *resty.Response, err error) bool {
 	return false
 }
 
+// HTTPClient is a http client interface
 type HTTPClient interface {
 	GET(url string, res interface{}) (*resty.Response, error)
 }
@@ -61,6 +62,9 @@ type httpClient struct {
 	*resty.Client
 }
 
+// NewHTTPClient returns an instance of resty client
+// which implements the HTTPClient interface.
+// It also sets some configurations for the client.
 func NewHTTPClient() HTTPClient {
 	c := resty.New()
 	c.SetRetryCount(RetryCount)
@@ -74,6 +78,8 @@ func NewHTTPClient() HTTPClient {
 	}
 }
 
+// GET takes in url and the res interface
+// and returns resty Response and error
 func (c *httpClient) GET(url string, res interface{}) (*resty.Response, error) {
 	req := c.Client.R().SetResult(res)
 	httpResp, err := req.Get(url)
@@ -92,24 +98,31 @@ func errIfHTTPReqFailed(resp *resty.Response, err error) error {
 	return nil
 }
 
+// buildLatestRateURL builds the /latest url given currency
+// Note: EUR is always the base so can get the value of 1
+// 'currency' in euros
 func buildLatestRateURL(currency string) (string, error) {
 	queryParams := map[string]string{
-		BaseParam:    currency,
-		SymbolsParam: EURSymbol,
+		ParamBase:    currency,
+		ParamSymbols: SymbolEuro,
 	}
 
-	return buildURL(LatestPath, queryParams)
+	return buildURL(PathLatest, queryParams)
 }
 
+// buildHistoricalRatesURL builds the /history url given currency
+// startDate and endDate
+// Note: EUR is always the base so can get the value of 1
+// 'currency' in euros
 func buildHistoricalRatesURL(currency string, startDate, endDate string) (string, error) {
 	queryParams := map[string]string{
-		StartDateParam: startDate,
-		EndDateParam:   endDate,
-		SymbolsParam:   EURSymbol,
-		BaseParam:      currency,
+		ParamStartDate: startDate,
+		ParamEndDate:   endDate,
+		ParamSymbols:   SymbolEuro,
+		ParamBase:      currency,
 	}
 
-	return buildURL(HistoricalPath, queryParams)
+	return buildURL(PathHistory, queryParams)
 }
 
 func buildURL(path string, queryParams map[string]string) (string, error) {

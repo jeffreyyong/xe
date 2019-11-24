@@ -1,9 +1,8 @@
-.PHONY : helm test all bi cover
+.PHONY : test all fix cover local_run
 
 all:
 	make lint
 	make test
-	make helm
 
 fix:
 	bash script/build.sh fix

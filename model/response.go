@@ -6,6 +6,7 @@ const (
 	ErrRouteNotFound = "route not found"
 )
 
+// ConvertResp is the response struct for XE Service
 type ConvertResp struct {
 	From           string  `json:"from,omitempty"`
 	To             string  `json:"to,omitempty"`

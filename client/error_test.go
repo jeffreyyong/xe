@@ -8,30 +8,32 @@ import (
 )
 
 type testParams struct {
-	description         string
-	url                 string
-	msg                 string
-	err                 error
-	expHTTPClientErrNil bool
-	expErrMsg           string
+	description            string
+	url                    string
+	msg                    string
+	err                    error
+	expHTTPClientErrExists bool
+	expErrMsg              string
 }
 
+// TestNewHTTPClientError checks that the right format
+// of error is constructed
 func TestNewHTTPClientError(t *testing.T) {
 	cases := []testParams{
 		{
-			description:         "non nil error",
-			url:                 "http://localhost.com",
-			msg:                 "GetLatestRates",
-			err:                 errors.New("interface conversion: interface is string not int"),
-			expHTTPClientErrNil: false,
-			expErrMsg:           "http://localhost.com: GetLatestRates: interface conversion: interface is string not int",
+			description:            "non nil error",
+			url:                    "http://localhost.com",
+			msg:                    "GetLatestRate",
+			err:                    errors.New("interface conversion: interface is string not int"),
+			expHTTPClientErrExists: true,
+			expErrMsg:              "http://localhost.com: GetLatestRate: interface conversion: interface is string not int",
 		},
 		{
-			description:         "nil error",
-			url:                 "http://localhost.com",
-			msg:                 "",
-			err:                 nil,
-			expHTTPClientErrNil: true,
+			description:            "nil error",
+			url:                    "http://localhost.com",
+			msg:                    "",
+			err:                    nil,
+			expHTTPClientErrExists: false,
 		},
 	}
 
@@ -44,10 +46,10 @@ func TestNewHTTPClientError(t *testing.T) {
 }
 
 func assertTest(t *testing.T, httpClientErr error, tt testParams) {
-	if tt.expHTTPClientErrNil {
-		assert.Nil(t, httpClientErr)
-	} else {
-		assert.NotNil(t, httpClientErr)
+	if tt.expHTTPClientErrExists {
+		assert.Error(t, httpClientErr)
 		assert.Equal(t, tt.expErrMsg, httpClientErr.Error(), "error message is wrong")
+	} else {
+		assert.NoError(t, httpClientErr)
 	}
 }
