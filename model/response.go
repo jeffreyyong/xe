@@ -1,9 +1,15 @@
 package model
 
+const (
+	ErrDecodeParams  = "invalid query parameter - currency must be provided"
+	ErrConvert       = "error converting currency"
+	ErrRouteNotFound = "route not found"
+)
+
 type ConvertResp struct {
-	From           string `json:"from"`
-	To             string `json:"to"`
-	Rate           string `json:"rate"`
-	TrendFromWeek  string `json:"trendLastWeek"`
-	Recommendation string `json:"recommendation"`
+	From           string  `json:"from,omitempty"`
+	To             string  `json:"to,omitempty"`
+	Rate           float64 `json:"rate,omitempty"`
+	Recommendation string  `json:"recommendation,omitempty"`
+	Error          string  `json:"error,omitempty"`
 }
