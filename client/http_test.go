@@ -1,6 +1,7 @@
 package client
 
 import (
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -69,11 +70,77 @@ func TestRestyClientRetryConditionNoRetries(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestBuildLatestRatesURL(t *testing.T) {
-	rates := []string{"USD", "GBP"}
-	expected := "https://api.exchangeratesapi.io/latest?symbols=USD%2CGBP"
+func TestBuildLatestRateURL(t *testing.T) {
+	rate := "GBP"
+	expected := "https://api.exchangeratesapi.io/latest?base=GBP&symbols=EUR"
 
-	latestRatesURL, err := buildLatestRatesURL(rates)
+	latestRateURL, err := buildLatestRateURL(rate)
 	assert.NoError(t, err)
-	assert.Equal(t, expected, latestRatesURL, "latest rates URL is wrong")
+	assert.Equal(t, expected, latestRateURL, "latest rate URL is wrong")
+}
+
+func TestBuildHistoricalRatesURL(t *testing.T) {
+	rate := "GBP"
+	startDate := "2019-11-15"
+	endDate := "2019-11-22"
+	expected := "https://api.exchangeratesapi.io/history?base=GBP&end_at=2019-11-22&start_at=2019-11-15&symbols=EUR"
+
+	latestRateURL, err := buildHistoricalRatesURL(rate, startDate, endDate)
+	assert.NoError(t, err)
+	assert.Equal(t, expected, latestRateURL, "historical rates URL is wrong")
+}
+
+func TestErrIfHTTPReqFailed(t *testing.T) {
+	type testParams struct {
+		description   string
+		err           error
+		resp          *resty.Response
+		expErrExist   bool
+		expErrMessage string
+	}
+
+	cases := []testParams{
+		{
+			description:   "err exists before HTTP request is made",
+			err:           errors.New("tcp connection timeout"),
+			resp:          nil,
+			expErrExist:   true,
+			expErrMessage: "tcp connection timeout",
+		},
+		{
+			description: "non 2xx status code",
+			err:         nil,
+			resp: &resty.Response{
+				RawResponse: &http.Response{
+					StatusCode: 500,
+					Status:     "500 ERROR",
+				},
+			},
+			expErrExist:   true,
+			expErrMessage: "received non 2XX response: 500 ERROR",
+		},
+		{
+			description: "no error",
+			err:         nil,
+			resp: &resty.Response{
+				RawResponse: &http.Response{
+					StatusCode: 200,
+					Status:     "200 OK",
+				},
+			},
+			expErrExist: false,
+		},
+	}
+
+	for _, tt := range cases {
+		t.Run(tt.description, func(t *testing.T) {
+			err := errIfHTTPReqFailed(tt.resp, tt.err)
+			if tt.expErrExist {
+				assert.Error(t, err)
+				assert.Equal(t, tt.expErrMessage, err.Error())
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
 }

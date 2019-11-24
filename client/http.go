@@ -2,9 +2,7 @@ package client
 
 import (
 	"fmt"
-	"net/http"
 	"net/url"
-	"strings"
 	"time"
 
 	"github.com/go-resty/resty/v2"
@@ -15,8 +13,10 @@ const (
 	LatestPath     = "latest"
 	HistoricalPath = "history"
 	SymbolsParam   = "symbols"
+	BaseParam      = "base"
 	StartDateParam = "start_at"
 	EndDateParam   = "end_at"
+	EURSymbol      = "EUR"
 )
 
 var (
@@ -53,19 +53,29 @@ var retryCondFunc = func(r *resty.Response, err error) bool {
 	return false
 }
 
-func newDefaultRestyClient() *resty.Client {
-	client := resty.New()
-	client.SetRetryCount(RetryCount)
-	client.SetRetryWaitTime(RetryWaitTime)
-	client.SetRetryMaxWaitTime(RetryMaxWaitTime)
-	client.SetTimeout(Timeout)
-	client.SetHeader(http.CanonicalHeaderKey("Content-Type"), "application/json")
-	client.AddRetryCondition(retryCondFunc)
-
-	return client
+type HTTPClient interface {
+	GET(url string, res interface{}) (*resty.Response, error)
 }
 
-func doGet(url string, req *resty.Request) (*resty.Response, error) {
+type httpClient struct {
+	*resty.Client
+}
+
+func NewHTTPClient() HTTPClient {
+	c := resty.New()
+	c.SetRetryCount(RetryCount)
+	c.SetRetryWaitTime(RetryWaitTime)
+	c.SetRetryMaxWaitTime(RetryMaxWaitTime)
+	c.SetTimeout(Timeout)
+	c.AddRetryCondition(retryCondFunc)
+
+	return &httpClient{
+		Client: c,
+	}
+}
+
+func (c *httpClient) GET(url string, res interface{}) (*resty.Response, error) {
+	req := c.Client.R().SetResult(res)
 	httpResp, err := req.Get(url)
 	return httpResp, errIfHTTPReqFailed(httpResp, err)
 }
@@ -76,27 +86,27 @@ func errIfHTTPReqFailed(resp *resty.Response, err error) error {
 	}
 
 	if !resp.IsSuccess() {
-		return fmt.Errorf("received non 2XX response: %s: %v", resp.Status(), resp)
+		return fmt.Errorf("received non 2XX response: %s", resp.Status())
 	}
 
 	return nil
 }
 
-func buildLatestRatesURL(rates []string) (string, error) {
-	ratesValue := strings.Join(rates, ",")
+func buildLatestRateURL(currency string) (string, error) {
 	queryParams := map[string]string{
-		SymbolsParam: ratesValue,
+		BaseParam:    currency,
+		SymbolsParam: EURSymbol,
 	}
 
 	return buildURL(LatestPath, queryParams)
 }
 
-func buildHistoricalRatesURL(rates []string, startDate, endDate string) (string, error) {
-	ratesValue := strings.Join(rates, ",")
+func buildHistoricalRatesURL(currency string, startDate, endDate string) (string, error) {
 	queryParams := map[string]string{
-		SymbolsParam:   ratesValue,
 		StartDateParam: startDate,
 		EndDateParam:   endDate,
+		SymbolsParam:   EURSymbol,
+		BaseParam:      currency,
 	}
 
 	return buildURL(HistoricalPath, queryParams)
