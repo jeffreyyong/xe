@@ -10,9 +10,9 @@ import (
 const (
 	EUR = "EUR"
 
-	ConvertSignal   Signal = "convert"
-	NoConvertSignal Signal = "don't convert"
-	NeutralSignal   Signal = "Neutral"
+	SignalConvert   Signal = "convert"
+	SignalNoConvert Signal = "don't convert"
+	SignalNeutral   Signal = "Neutral"
 )
 
 type Signal string
@@ -32,11 +32,11 @@ func (e *engine) Recommend(ratesList model.RatesList) Signal {
 	sortedRates := sortRatesList(ratesList)
 	slope := getSlope(sortedRates, EUR)
 
-	signal := NeutralSignal
+	signal := SignalNeutral
 	if slope > 0 {
-		signal = NoConvertSignal
+		signal = SignalNoConvert
 	} else if slope < 0 {
-		signal = ConvertSignal
+		signal = SignalConvert
 	}
 
 	return signal

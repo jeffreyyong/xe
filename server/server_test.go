@@ -155,7 +155,7 @@ func TestHandlerConvertNoError(t *testing.T) {
 	mockFX.EXPECT().GetHistoricalRates(gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(mockHistoricalRates, nil)
 
-	mockCE.EXPECT().Recommend(gomock.Any()).Return(calculator.ConvertSignal)
+	mockCE.EXPECT().Recommend(gomock.Any()).Return(calculator.SignalConvert)
 
 	convertResp := &model.ConvertResp{}
 	url := "http://localhost:3000/convert?currency=USD"
