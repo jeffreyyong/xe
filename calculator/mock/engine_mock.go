@@ -9,7 +9,7 @@ import (
 
 	gomock "github.com/golang/mock/gomock"
 	calculator "github.com/jeffreyyong/xe/calculator"
-	client "github.com/jeffreyyong/xe/client"
+	"github.com/jeffreyyong/xe/model"
 )
 
 // MockEngine is a mock of Engine interface
@@ -36,7 +36,7 @@ func (m *MockEngine) EXPECT() *MockEngineMockRecorder {
 }
 
 // Recommend mocks base method
-func (m *MockEngine) Recommend(arg0 client.RatesList) calculator.Signal {
+func (m *MockEngine) Recommend(arg0 model.RatesList) calculator.Signal {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Recommend", arg0)
 	ret0, _ := ret[0].(calculator.Signal)

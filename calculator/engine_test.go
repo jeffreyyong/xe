@@ -3,12 +3,12 @@ package calculator
 import (
 	"testing"
 
-	"github.com/jeffreyyong/xe/client"
+	"github.com/jeffreyyong/xe/model"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestSortRatesList(t *testing.T) {
-	ratesList := client.RatesList{
+	ratesList := model.RatesList{
 		"2019-11-21": {
 			EUR: 1.1689343994,
 		},
@@ -29,7 +29,7 @@ func TestSortRatesList(t *testing.T) {
 		},
 	}
 
-	expectedRatesSequence := []client.Rates{
+	expectedRatesSequence := []model.Rates{
 		{
 			EUR: 1.1674060238,
 		},
@@ -56,7 +56,7 @@ func TestSortRatesList(t *testing.T) {
 }
 
 func TestLinearRegression(t *testing.T) {
-	ratesSequence := []client.Rates{
+	ratesSequence := []model.Rates{
 		{
 			EUR: 1.1674060238,
 		},

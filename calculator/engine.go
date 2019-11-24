@@ -3,7 +3,7 @@ package calculator
 import (
 	"sort"
 
-	"github.com/jeffreyyong/xe/client"
+	"github.com/jeffreyyong/xe/model"
 	"gonum.org/v1/gonum/stat"
 )
 
@@ -18,7 +18,7 @@ const (
 type Signal string
 
 type Engine interface {
-	Recommend(ratesList client.RatesList) Signal
+	Recommend(ratesList model.RatesList) Signal
 }
 
 type engine struct {
@@ -28,7 +28,7 @@ func NewEngine() Engine {
 	return &engine{}
 }
 
-func (e *engine) Recommend(ratesList client.RatesList) Signal {
+func (e *engine) Recommend(ratesList model.RatesList) Signal {
 	sortedRates := sortRatesList(ratesList)
 	slope := getSlope(sortedRates, EUR)
 
@@ -42,9 +42,9 @@ func (e *engine) Recommend(ratesList client.RatesList) Signal {
 	return signal
 }
 
-func sortRatesList(ratesList client.RatesList) []client.Rates {
+func sortRatesList(ratesList model.RatesList) []model.Rates {
 	var dates []string
-	ratesSequence := make([]client.Rates, len(ratesList))
+	ratesSequence := make([]model.Rates, len(ratesList))
 
 	for d := range ratesList {
 		dates = append(dates, d)
@@ -58,7 +58,7 @@ func sortRatesList(ratesList client.RatesList) []client.Rates {
 }
 
 // getSlope gets the trend of a line
-func getSlope(ratesSequence []client.Rates, currency string) float64 {
+func getSlope(ratesSequence []model.Rates, currency string) float64 {
 	length := len(ratesSequence)
 	timeline := make([]float64, length)
 	rates := make([]float64, length)

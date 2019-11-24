@@ -8,6 +8,7 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/golang/mock/gomock"
 	"github.com/jeffreyyong/xe/client/mock"
+	"github.com/jeffreyyong/xe/model"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -17,8 +18,8 @@ func TestGetLatestRateHappyCase(t *testing.T) {
 	httpClient := mock.NewMockHTTPClient(ctrl)
 	forex := NewForex(httpClient)
 
-	mockLatestRate := &LatestRate{
-		Rates: Rates{
+	mockLatestRate := &model.LatestRate{
+		Rates: model.Rates{
 			"EUR": 1.163061177,
 		},
 		Base: "GBP",
@@ -86,12 +87,12 @@ func TestGetHistoricalRatesHappyCase(t *testing.T) {
 	httpClient := mock.NewMockHTTPClient(ctrl)
 	forex := NewForex(httpClient)
 
-	mockHistoricalRates := &HistoricalRates{
-		RatesList: RatesList{
-			"2019-11-21": Rates{
+	mockHistoricalRates := &model.HistoricalRates{
+		RatesList: model.RatesList{
+			"2019-11-21": model.Rates{
 				"EUR": 1.163061177,
 			},
-			"2019-11-22": Rates{
+			"2019-11-22": model.Rates{
 				"EUR": 1.163061177,
 			},
 		},

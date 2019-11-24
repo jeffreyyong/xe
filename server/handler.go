@@ -82,7 +82,7 @@ func (h *Handler) convert(ctx *gin.Context) (int, *model.ConvertResp, error) {
 	return http.StatusOK, convertResp, nil
 }
 
-func extractTargetRate(l *client.LatestRate) (float64, error) {
+func extractTargetRate(l *model.LatestRate) (float64, error) {
 	if l == nil {
 		return 0, errors.New("can't extract currency")
 	}

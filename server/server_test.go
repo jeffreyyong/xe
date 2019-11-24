@@ -66,8 +66,8 @@ func TestExtractTargetRateError(t *testing.T) {
 
 	// error with unrecognised interest rate:
 	// NON_EXISTENT_RATE
-	mockLatestRate := &client.LatestRate{
-		Rates: client.Rates{
+	mockLatestRate := &model.LatestRate{
+		Rates: model.Rates{
 			"NON_EXISTENT_RATE": 1.163061177,
 		},
 		Base: "GBP",
@@ -95,8 +95,8 @@ func TestGetHistoricalRatesError(t *testing.T) {
 	go xeService.Run()
 	defer xeService.Stop()
 
-	mockLatestRate := &client.LatestRate{
-		Rates: client.Rates{
+	mockLatestRate := &model.LatestRate{
+		Rates: model.Rates{
 			"EUR": 1.163061177,
 		},
 		Base: "GBP",
@@ -127,20 +127,20 @@ func TestHandlerConvertNoError(t *testing.T) {
 	go xeService.Run()
 	defer xeService.Stop()
 
-	mockLatestRate := &client.LatestRate{
-		Rates: client.Rates{
+	mockLatestRate := &model.LatestRate{
+		Rates: model.Rates{
 			"EUR": 1.163061177,
 		},
 		Base: "GBP",
 		Date: "2019-11-22",
 	}
 
-	mockHistoricalRates := &client.HistoricalRates{
-		RatesList: client.RatesList{
-			"2019-11-21": client.Rates{
+	mockHistoricalRates := &model.HistoricalRates{
+		RatesList: model.RatesList{
+			"2019-11-21": model.Rates{
 				"EUR": 1.163061177,
 			},
-			"2019-11-22": client.Rates{
+			"2019-11-22": model.Rates{
 				"EUR": 1.163061177,
 			},
 		},
